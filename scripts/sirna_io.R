@@ -34,10 +34,10 @@ clean = function(x, plateno, wellstart){
 }
 
 #Input data
-raw1 = import("H:/My Documents/My PhD/siRNA screen/Human cytokine screen/180117 p1.csv")
-raw2 = import("H:/My Documents/My PhD/siRNA screen/Human cytokine screen/220117 p2.csv")
-raw3 = import("H:/My Documents/My PhD/siRNA screen/Human cytokine screen/290117 p3.csv")
-raw4 = import("H:/My Documents/My PhD/siRNA screen/Human cytokine screen/060217 p4.csv")
+raw1 = import("data/180117 p1-1.csv")
+raw2 = import("data/220117 p1-2.csv")
+raw3 = import("data/290117 p1-3.csv")
+raw4 = import("data/060217 p1-4.csv")
 
 raw1.c = filter(raw1, grepl("Control_*", raw1$sample))
 raw2.c = filter(raw2, grepl("Control_*", raw2$sample))
@@ -51,4 +51,4 @@ raw4 = clean(raw4,4,241)
 
 
 # Collate data
-samp = rbind.fill(raw1,raw2,raw3, raw4)
+samp = rbind.fill(raw1,raw2,raw3, raw4, raw5)
