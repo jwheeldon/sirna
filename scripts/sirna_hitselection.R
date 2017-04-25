@@ -1,28 +1,28 @@
-##################################################
-###                                            ###
-###     siRNA hit selection - 15/11/16         ###
-###                                            ###
-##################################################
+### siRNA hit selection
 
 # Import libraries  ====
 #source("http://bioconductor.org/biocLite.R")
-library(stats)
-library(ggplot2)
 library(pROC)
-library(FactoMineR)
 
 # Import data ====
 source("scripts/sirna_qc.R")
 
-
 # Mean +/- k-SD ====
+quantile(samp$z, c(0.05, 0.95), type = 4)
+
 ggplot(data = samp, aes(x=samp$wellindex, y=samp$z))+
   geom_point()+
-  ggtitle(label = "k-standard deviations hit identification")+
-  geom_hline(yintercept = c(-1.5,1.5))+
-  geom_text(aes(label=ifelse(samp$z>1.5,as.character(samp$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
-  geom_text(aes(label=ifelse(samp$z<(-1.5),as.character(samp$genesymbol),'')),hjust=-0.1,vjust=-0.1)
+  ggtitle(label = "Screen 1: k-standard deviations hit identification")+
+  geom_hline(yintercept = c(-1.321557,1.67679))+
+  geom_text(aes(label=ifelse(samp$z>1.67679,as.character(samp$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  geom_text(aes(label=ifelse(samp$z<(-1.321557),as.character(samp$genesymbol),'')),hjust=-0.1,vjust=-0.1)
 
+ggplot(data = samp2, aes(x=samp2$wellindex, y=samp2$z))+
+  geom_point()+
+  ggtitle(label = "Screen 2: k-standard deviations hit identification")+
+  geom_hline(yintercept = c(-1.5,1.5))+
+  geom_text(aes(label=ifelse(samp2$z>1.5,as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  geom_text(aes(label=ifelse(samp2$z<(-1.5),as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)
 
 # Median +/- k-MAD Hit Identification ====
 median(samp$z)
@@ -34,12 +34,11 @@ ggplot(data = samp, aes(x=samp$wellindex, y=samp$zmad, label=samp$genesymbol))+
   geom_hline(yintercept = 2)+
   geom_text(aes(label=ifelse(samp$zmad>2,as.character(samp$genesymbol),'')),hjust=-0.1,vjust=-0.1)
 
-
 # ROC curves ====
-
 samp$hit.cut = ifelse(samp$nt.norm>50 | samp$nt.norm<(-20), 1, 0)
-samp$hit.zmad = as.numeric(ifelse(samp$zmad>1.98, 1, 0))
 samp$hit.ksd = as.vector(ifelse(samp$z>1.5 | samp$z<(-1.5), 1, 0))
+samp$hit.zmad = as.numeric(ifelse(samp$zmad>1.98, 1, 0))
+
 
 model1=glm(samp$hit.cut ~ samp$p24.supt1 + samp$dead.supt1 + samp$p24.mddc + samp$dead.mddc,
            data=samp,
@@ -118,18 +117,25 @@ plot(roc.cut, main="Cross validation: Leave-one-out");plot(roc.zmad, add=T, col=
 legend(0.4,0.2, c("nt.cut 0.7504", "zmad 0.6102", "ksd 0.6293"), lty=1, col=c('black','red','green'), bty='n', cex=.75)
 
 
-
 # Strictly standardised mean difference (SSMD) hit identification ====
-summary(z)
 
 
+# Hit confirmation ====
+avg = matrix(c(samp$z, samp2$z), 319, 2)
+avg = cbind(avg, rowMeans(avg[,1:2]))
 
-# PCA ====
-pca = PCA(samp[,2:5])
-plot.PCA(pca, choix="ind", axes=c(1,2))
-pca$eig
-pca$var$coord
-pca$var$contrib
+
+samp2$z.avg = avg[,3]
+
+ggplot(data = samp2, aes(x=samp2$wellindex, y=samp2$z.avg))+
+  geom_point()+
+  ggtitle(label = "Screen 1&2 z.avg: k-standard deviations hit identification")+
+  geom_hline(yintercept = c(-1.5,1.5))+
+  geom_text(aes(label=ifelse(samp2$z.avg>1.5,as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  geom_text(aes(label=ifelse(samp2$z.avg<(-1.5),as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  geom_text(aes(label=ifelse(samp2$genesymbol=="IL8",as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)
+
+
 
 
 # Output ====
@@ -139,7 +145,5 @@ write.table(samp$accession[which(samp$z>1.5)], "output/ksdup.txt", quote=F, row.
 write.table(samp$accession[which(samp$z<(-1.5))], "output/ksddown.txt", quote=F, row.names = F, col.names = F)
 write.table(samp$accession[which(samp$zmad>1.98)], "output/kmad.txt", quote=F, row.names = F, col.names = F)
 
-
 #cor1=cor(samp$p24.supt1[which(samp$plateno=="plate1")], samp$p24.supt1[which(samp$plateno=="plate2")])
 #plot(samp$p24.supt1[which(samp$plateno=="plate1")], samp$p24.supt1[which(samp$plateno=="plate2")])
-detach()
