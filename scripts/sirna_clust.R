@@ -1,5 +1,4 @@
 # siRNA data mining
-# 080317
 
 # Import libraries  ====
 library(FactoMineR)
