@@ -135,9 +135,6 @@ ggplot(data = samp2, aes(x=samp2$wellindex, y=samp2$z.avg))+
   geom_text(aes(label=ifelse(samp2$z.avg<(-1.5),as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
   geom_text(aes(label=ifelse(samp2$genesymbol=="IL8",as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)
 
-
-
-
 # Output ====
 write.table(samp$accession[which(samp$nt.norm > 50)], "output/ntup.txt", quote=F, row.names = F, col.names = F)
 write.table(samp$accession[which(samp$nt.norm <(-20))], "output/ntdown.txt", quote=F, row.names = F, col.names = F)
