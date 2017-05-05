@@ -13,12 +13,7 @@ source("scripts/siRNA_hitselection.R")
 #samp2$hit = ifelse(scale(samp2$dead.mddc)>1.5 | scale(samp2$dead.mddc)<(-1.5), T,F)
 samp2$hit = ifelse(scale(samp2$p24.supt1)>1.5 | scale(samp2$p24.supt1)<(-1.5), 1,0)
 
-<<<<<<< HEAD
-#z = samp2$z
-z= scale(samp2$p24.supt1)
-=======
 z = scale(samp2$p24.supt1)
->>>>>>> a7e01bf2a445c88c62d28b0f4edff81324c6f42c
 
 type.hits=factor(c("No","Low","High"))
 for(i in 1:nrow(samp2)){
