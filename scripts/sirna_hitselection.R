@@ -1,9 +1,5 @@
 ### siRNA hit selection
 
-# Import libraries  ====
-#source("http://bioconductor.org/biocLite.R")
-library(pROC)
-
 # Import data ====
 source("scripts/sirna_qc.R")
 
@@ -120,12 +116,28 @@ legend(0.4,0.2, c("nt.cut 0.7504", "zmad 0.6102", "ksd 0.6293"), lty=1, col=c('b
 # Strictly standardised mean difference (SSMD) hit identification ====
 
 
-# Hit confirmation ====
+# Duplicate screen: Hit confirmation ====
+avg = matrix(c(samp$nt.norm, samp2$nt.norm), 319, 2)
+avg = cbind(avg, rowMeans(avg[,1:2]))
+samp2$nt.avg = avg[,3]
+
 avg = matrix(c(samp$z, samp2$z), 319, 2)
 avg = cbind(avg, rowMeans(avg[,1:2]))
-
-
 samp2$z.avg = avg[,3]
+
+samp2$zmad = abs(samp2$z- median(samp2$z))
+avg = matrix(c(samp$zmad, samp2$zmad), 319, 2)
+avg = cbind(avg, rowMeans(avg[,1:2]))
+samp2$zmad.avg = avg[,3]
+
+ggplot(data = samp2, aes(x=samp2$wellindex, y=samp2$nt.avg))+
+  geom_point()+
+  ggtitle(label = "Screen 1&2 nt.avg: Non-target hit identification")+
+  geom_hline(yintercept = c(-20,50))#+
+  #geom_text(aes(label=ifelse(samp2$nt.avg>50,as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  #geom_text(aes(label=ifelse(samp2$nt.avg<(-20),as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  #geom_text(aes(label=ifelse(samp2$genesymbol=="IL8",as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)
+
 
 ggplot(data = samp2, aes(x=samp2$wellindex, y=samp2$z.avg))+
   geom_point()+
@@ -135,12 +147,40 @@ ggplot(data = samp2, aes(x=samp2$wellindex, y=samp2$z.avg))+
   geom_text(aes(label=ifelse(samp2$z.avg<(-1.5),as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
   geom_text(aes(label=ifelse(samp2$genesymbol=="IL8",as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)
 
+
+ggplot(data = samp2, aes(x=samp2$wellindex, y=samp2$zmad.avg))+
+  geom_point()+
+  ggtitle(label = "Screen 1&2 zmas.avg: k-median absolute deviation hit identification")+
+  geom_hline(yintercept = c(1.5))+
+  geom_text(aes(label=ifelse(samp2$zmad.avg>1.5,as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  geom_text(aes(label=ifelse(samp2$zmad.avg<(-1.5),as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)+
+  geom_text(aes(label=ifelse(samp2$genesymbol=="IL8",as.character(samp2$genesymbol),'')),hjust=-0.1,vjust=-0.1)
+
 # Output ====
-write.table(samp$accession[which(samp$nt.norm > 50)], "output/ntup.txt", quote=F, row.names = F, col.names = F)
-write.table(samp$accession[which(samp$nt.norm <(-20))], "output/ntdown.txt", quote=F, row.names = F, col.names = F)
-write.table(samp$accession[which(samp$z>1.5)], "output/ksdup.txt", quote=F, row.names = F, col.names = F)
-write.table(samp$accession[which(samp$z<(-1.5))], "output/ksddown.txt", quote=F, row.names = F, col.names = F)
-write.table(samp$accession[which(samp$zmad>1.98)], "output/kmad.txt", quote=F, row.names = F, col.names = F)
+write.table(samp$accession[which(samp2$nt.avg > 50)], "output/ntup.txt", quote=F, row.names = F, col.names = F)
+write.table(samp$accession[which(samp2$nt.avg <(-20))], "output/ntdown.txt", quote=F, row.names = F, col.names = F)
+write.table(samp$accession[which(samp2$z.avg>1.5)], "output/ksdup.txt", quote=F, row.names = F, col.names = F)
+write.table(samp$accession[which(samp2$z.avg<(-1.5))], "output/ksddown.txt", quote=F, row.names = F, col.names = F)
+write.table(samp$accession[which(samp2$zmad.avg>1.5)], "output/kmad.txt", quote=F, row.names = F, col.names = F)
 
 #cor1=cor(samp$p24.supt1[which(samp$plateno=="plate1")], samp$p24.supt1[which(samp$plateno=="plate2")])
 #plot(samp$p24.supt1[which(samp$plateno=="plate1")], samp$p24.supt1[which(samp$plateno=="plate2")])
+
+
+
+
+
+
+# Heatmap ====
+hit = matrix(c(samp$zmad[which(samp2$zmad.avg>1.5)],samp2$zmad[which(samp2$zmad.avg>1.5)]), ncol=2);
+rownames(hit) = samp$genesymbol[which(samp2$zmad.avg>1.5)]
+hit=melt(hit)
+
+ggplot(hit, aes(Var2, Var1))+
+  geom_tile(aes(fill=hit$value), colour="white")+
+  scale_fill_gradient(low = "white", high = "steelblue", limits = c(0,6))+
+  theme_grey(base_size = 9) + labs(x = "", y = "") +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0))+
+  guides(fill=F)+
+  coord_equal(1)

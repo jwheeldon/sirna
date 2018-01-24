@@ -1,12 +1,33 @@
 ### siRNA file i/o
 
 # Import libraries ====
-library(plyr)
-library(dplyr)
+if(!require(plyr)){
+  install.packages(c("plyr"))
+  require(plyr)
+}
 
+if(!require(dplyr)){
+  install.packages(c("dplyr"))
+  require(dplyr)
+}
+
+if(!require(FactoMineR)){
+  install.packages(c("FactoMineR"))
+  require(FactoMineR)
+}
+
+if(!require(pROC)){
+  install.packages(c("pROC"))
+  require(pROC)
+}
+
+if(!require(mixOmics)){
+  install.packages(c("mixOmics"))
+  require(mixOmics)
+}
 
 # Import siRNA cytokine receptor library ====
-cclib = read.csv("H:/My Documents/My PhD/siRNA screen/Libraries/G-104000 OTP Human Cytokine Receptors Lot 060724.csv")
+cclib = read.csv("D:/My PhD/siRNA screen/Libraries/G-104000 OTP Human Cytokine Receptors Lot 060724.csv")
 cclib = `colnames<-`(cclib, c("plate","well","catalog1","catalog2","genesymbol", "geneid", "accession", "ginumber"))
 cclib = na.omit(cclib)
 

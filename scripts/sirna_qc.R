@@ -1,11 +1,5 @@
 ### siRNA Quality Control
 
-# Import libraries  ====
-#source("http://bioconductor.org/biocLite.R")
-
-library(stats)
-library(ggplot2)
-
 # Import data
 source("scripts/sirna_io.R")
 
